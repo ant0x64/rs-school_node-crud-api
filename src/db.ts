@@ -1,31 +1,48 @@
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid, validate } from 'uuid';
+import { DatabaseErrorID } from './exceptions/database';
+import ModelInterface from './model/interface';
+
+export const validateUUID = validate;
 
 export type UUID = ReturnType<typeof uuid>;
 
-export default class Dabasbase<T extends { id?: UUID }> {
-  protected data: { [key: UUID]: T } = {};
+export class Database<ModelInterface> {
+  protected data: { [key: UUID]: ModelInterface } = {};
 
-  public add(row: T): UUID {
+  public add(row: ModelInterface): ModelInterface {
     const id: UUID = uuid();
-    this.data[id] = { ...row, id } as T;
-    return id;
+    const model = { ...row, id } as ModelInterface;
+    this.data[id] = model;
+    return model;
   }
 
   public delete(id: UUID): boolean {
+    this.checkId(id);
     return this.data[id] ? delete this.data[id] || true : false;
   }
 
-  public update(id: UUID, row: T): boolean {
+  public update(id: UUID, row: ModelInterface): boolean {
+    this.checkId(id);
     return this.data[id]
-      ? true && (this.data[id] = { ...row, id } as T) !== undefined
+      ? true && (this.data[id] = { ...row, id } as ModelInterface) !== undefined
       : false;
   }
 
-  public get(id: UUID): T | undefined {
+  public get(id: UUID): ModelInterface | undefined {
+    this.checkId(id);
     return this.data[id];
   }
 
-  public all(): T[] {
+  public all(): ModelInterface[] {
     return Object.values(this.data);
   }
+
+  private checkId(id: string) {
+    if (validateUUID(id)) {
+      throw new DatabaseErrorID();
+    }
+  }
 }
+
+const database = new Database<ModelInterface>();
+export default database;

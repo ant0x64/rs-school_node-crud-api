@@ -1,5 +1,13 @@
 import dotenv from 'dotenv';
-import server from './services/server';
+import Server from './services/server';
+
+import ModelInterface from './models/model.interface';
+import Database from './services/db.service';
 
 dotenv.config();
-server.listen(process.env.HOST_PORT ?? 3500);
+
+const database = new Database<ModelInterface>();
+const server = new Server(database);
+const listener = server.run();
+
+listener.listen(process.env.HOST_PORT ?? 3500);

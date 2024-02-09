@@ -2,7 +2,7 @@ import request from 'supertest';
 import dotenv from 'dotenv';
 import { v4 as uuid } from 'uuid';
 
-import server from 'services/server';
+import Server from 'services/server';
 import Database from 'services/db.service';
 import UserController from 'controllers/user.controller';
 
@@ -32,8 +32,12 @@ const validBody = {
 //   },
 // ];
 
+const database = new Database();
+const server = new Server(database);
+const listener = server.run();
+
 describe('Server Requests Testing', () => {
-  server.listen(process.env.HOST_PORT ?? 3500);
+  listener.listen(process.env.HOST_PORT ?? 3500);
   jest.mock('services/db.service');
 
   const userController = new UserController(new Database());
@@ -42,14 +46,14 @@ describe('Server Requests Testing', () => {
   jest.unmock('services/db.service');
 
   test('Get all records with a GET api/users request (an empty array is expected)', async () => {
-    const response = await request(server).get(controller_root);
+    const response = await request(listener).get(controller_root);
     expect(response.status).toEqual(200);
     expect(response.body).toEqual({ result: [] });
   });
 
   test('Get not existed user (404 status and the message expected)', async () => {
     const valid_id = uuid();
-    const response = await request(server).get(
+    const response = await request(listener).get(
       controller_root + '/' + valid_id,
     );
     expect(response.status).toEqual(404);
@@ -58,7 +62,7 @@ describe('Server Requests Testing', () => {
 
   test('Get invalid user ID (400 status and the message expected)', async () => {
     const invalid_id = uuid() + '__';
-    const response = await request(server).get(
+    const response = await request(listener).get(
       controller_root + '/' + invalid_id,
     );
     expect(response.status).toEqual(400);
@@ -66,7 +70,7 @@ describe('Server Requests Testing', () => {
   });
 
   test('Add new valid user (201 status and the result expected)', async () => {
-    const response = await request(server)
+    const response = await request(listener)
       .post(controller_root)
       .send(validBody);
 
@@ -75,14 +79,14 @@ describe('Server Requests Testing', () => {
   });
 
   test('Get existed user (200 status and the result expected)', async () => {
-    const createUserResponce = await request(server)
+    const createUserResponce = await request(listener)
       .post(controller_root)
       .send(validBody);
 
     expect(createUserResponce.body).toHaveProperty('result.id');
     const user_id = createUserResponce.body.result.id;
 
-    const getUserResponce = await request(server).get(
+    const getUserResponce = await request(listener).get(
       controller_root + '/' + user_id,
     );
 
@@ -91,14 +95,14 @@ describe('Server Requests Testing', () => {
   });
 
   test('Delete existed user (204 status expected)', async () => {
-    const createUserResponce = await request(server)
+    const createUserResponce = await request(listener)
       .post(controller_root)
       .send(validBody);
 
     expect(createUserResponce.body).toHaveProperty('result.id');
     const user_id = createUserResponce.body.result.id;
 
-    const getUserResponce = await request(server).delete(
+    const getUserResponce = await request(listener).delete(
       controller_root + '/' + user_id,
     );
 
@@ -106,7 +110,7 @@ describe('Server Requests Testing', () => {
   });
 
   test('Update existed user (200 status and the result expected)', async () => {
-    const createUserResponce = await request(server)
+    const createUserResponce = await request(listener)
       .post(controller_root)
       .send(validBody);
 
@@ -115,7 +119,7 @@ describe('Server Requests Testing', () => {
 
     validBody.username = 'New Name';
 
-    const putUserResponce = await request(server)
+    const putUserResponce = await request(listener)
       .put(controller_root + '/' + user_id)
       .send(validBody);
 
@@ -128,7 +132,7 @@ describe('Server Requests Testing', () => {
   });
 
   test('Requests to non-existing endpoints', async () => {
-    const createUserResponce = await request(server).get(
+    const createUserResponce = await request(listener).get(
       '/no/' + controller_root,
     );
 
@@ -136,5 +140,5 @@ describe('Server Requests Testing', () => {
     expect(createUserResponce.body).toHaveProperty('message');
   });
 
-  server.close();
+  listener.close();
 });

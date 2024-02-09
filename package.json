@@ -17,6 +17,10 @@
       "test:verbose": "jest",
       "build": "tsc"
     },
+    "dependencies": {
+      "uuid": "^9.0.1",
+      "dotenv": "^16.4.1"
+    },
     "devDependencies": {
       "typescript": "^5.3.3",
       "@types/node": "^20.11.16",
@@ -24,8 +28,6 @@
       "ts-node": "^10.9.1",
       "ts-node-dev": "^2.0.0",
       "tsconfig-paths": "^4.2.0",
-
-      "dotenv": "^16.4.1",
 
       "prettier": "^3.2.5",
 
@@ -39,11 +41,7 @@
       "ts-jest": "^29.1.2",
       "@types/jest": "^29.5.12",
 
-      "uuid": "^9.0.1",
       "@types/uuid": "^9.0.8"
-    },
-    "dependencies": {
-        "uuid": "^9.0.1"
     }
   }
   

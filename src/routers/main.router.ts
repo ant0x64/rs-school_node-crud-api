@@ -2,17 +2,18 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import ControllerInterface, {
   ControllerResponse,
   ControllerRoot,
-} from './controller/intarface';
+} from './../controllers/controller.interface';
+import controllersProvider from './../controllers/controller.provider';
 
-import controllersProvider from './controller/provider';
+import Database from './../services/db.service';
 
 export default class Router {
   protected controllers: {
     [key: ControllerRoot]: ControllerInterface<ControllerResponse>;
   } = {};
 
-  async build() {
-    this.controllers = await controllersProvider.getControllers();
+  async build(database: Database<any>) {
+    this.controllers = await controllersProvider.getControllers(database);
   }
 
   handle(req: IncomingMessage, res: ServerResponse): void {
@@ -30,8 +31,14 @@ export default class Router {
         for (const [key, controller] of Object.entries(this.controllers)) {
           if (req.url && `${req.url}/`.startsWith(`${key}/`)) {
             try {
-              const regex = new RegExp(`^${key}`);
-              const params = req.url.replace(regex, '').split('/');
+              const regex = new RegExp(`^${key}(\/)?`);
+              const params = req.url
+                .replace(regex, '')
+                .split('/')
+                .filter((val) => {
+                  val && val !== '';
+                });
+
               result = controller.proceed(
                 req.method,
                 params,

@@ -4,6 +4,7 @@
     "description": "",
     "author": "ant0x64",
     "license": "MIT",
+    "type": "commonjs",
     "engines": {
       "node": ">=20.11.0"
     },

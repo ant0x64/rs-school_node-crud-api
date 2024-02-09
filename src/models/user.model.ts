@@ -1,5 +1,6 @@
-import ModelInterface from './interface';
-import { ModelErrorFields } from './../exceptions/model';
+import ModelInterface from './model.interface';
+
+import { ModelErrorFields } from './../exceptions/model.exception';
 import { FieldsMap, hasRequiredFields } from './../utils/objects';
 
 export default interface UserInterface extends ModelInterface {

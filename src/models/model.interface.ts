@@ -1,4 +1,4 @@
-import { UUID } from './../db';
+import { UUID } from './../services/db.service';
 
 export default interface ModelInterface {
   id: UUID | undefined;

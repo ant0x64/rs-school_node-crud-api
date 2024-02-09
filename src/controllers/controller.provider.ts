@@ -1,7 +1,10 @@
 import ControllerInterface, {
   ControllerRoot,
   ControllerResponse,
-} from './intarface';
+} from './controller.interface';
+
+import Database from './../services/db.service';
+
 import { readdir } from 'fs/promises';
 import { parse } from 'path';
 
@@ -10,14 +13,14 @@ class ControllersProvide {
     [key: ControllerRoot]: ControllerInterface<ControllerResponse>;
   } = {};
 
-  async getControllers() {
+  async getControllers(database: Database<any>) {
     if (!Object.keys(this.controllers).length) {
       await readdir(__dirname).then(async (modules) => {
         for (const file of modules) {
           const name = parse(file).name;
-          if (name.endsWith('Controller')) {
+          if (name.endsWith('.controller')) {
             const { default: Controller } = await import('./' + name);
-            const controllerModel = new Controller();
+            const controllerModel = new Controller(database);
             this.controllers[controllerModel.root] = controllerModel;
           }
         }

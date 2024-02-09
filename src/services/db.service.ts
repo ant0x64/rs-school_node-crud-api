@@ -37,7 +37,7 @@ export default class Database<T> {
   }
 
   private checkId(id: string) {
-    if (validateUUID(id)) {
+    if (!validateUUID(id)) {
       throw new DatabaseErrorID();
     }
   }

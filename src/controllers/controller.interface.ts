@@ -2,7 +2,7 @@ export type ControllerRoot = `/${string}`;
 
 export type ControllerResponse = {
   result: object;
-  code: 200 | 201 | 400 | 404 | 500;
+  code: 200 | 201 | 204 | 400 | 404 | 500;
   message?: string;
 };
 

@@ -12,7 +12,12 @@ const database = new Database<ModelInterface>();
 
 router.build(database).then(() => {
   const server = createServer((req, res) => {
-    router.handle(req, res);
+    try {
+      router.handle(req, res);
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end('Internal Server Error');
+    }
   });
-  server.listen(process.env.HOST_PORT ?? 8000);
+  server.listen(process.env.HOST_PORT ?? 3500);
 });

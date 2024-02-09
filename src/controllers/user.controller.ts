@@ -75,28 +75,42 @@ export default class UserController
       result,
     } as ControllerResponse;
   }
-  private _handlePut({}: object, params: string[]): ControllerResponse {
-    const user_id = params[0];
-    const responce = {
-      code: 200,
-    } as ControllerResponse;
+  private _handlePut(data: object, params: string[]): ControllerResponse {
+    const user_id = params[0] as string;
 
-    if (!user_id) {
-      responce.code = 404;
-      responce.message = "User with this ID doesn't exist";
-    } else {
-      const userData = this.database.get(user_id);
-      if (!userData) {
-        responce.code = 404;
-        responce.message = "User with this ID doesn't exist";
-      } else {
-        responce.result = userData;
-      }
+    const userData = this.database.get(user_id);
+    if (!userData) {
+      return {
+        code: 404,
+        message: "User with this ID doesn't exist",
+      } as ControllerResponse;
     }
 
-    return responce;
+    const userModel = createUserModel({ ...userData, ...data });
+    this.database.update(user_id, userModel);
+
+    return {
+      code: 200,
+      message: 'User sucessfully updated',
+      result: userModel,
+    } as ControllerResponse;
   }
-  private _handleDelete(): ControllerResponse {
-    return { message: 'not implemented' } as ControllerResponse;
+
+  private _handleDelete({}, params: string[]): ControllerResponse {
+    const user_id = params[0] as string;
+
+    const userData = this.database.get(user_id);
+    if (!userData) {
+      return {
+        code: 404,
+        message: "User with this ID doesn't exist",
+      } as ControllerResponse;
+    } else {
+      this.database.delete(user_id);
+    }
+    return {
+      code: 204,
+      message: 'User sucessfully deleted',
+    } as ControllerResponse;
   }
 }

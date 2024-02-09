@@ -30,43 +30,29 @@ export default class Router {
       if (req.method) {
         for (const [key, controller] of Object.entries(this.controllers)) {
           if (req.url && `${req.url}/`.startsWith(`${key}/`)) {
-            try {
-              const regex = new RegExp(`^${key}(\/)?`);
-              const params = req.url
-                .replace(regex, '')
-                .split('/')
-                .filter((val) => {
-                  val && val !== '';
-                });
+            const regex = new RegExp(`^${key}(\/)?`);
+            const params = req.url
+              .replace(regex, '')
+              .split('/')
+              .filter((val) => val && val !== '');
 
-              result = controller.proceed(
-                req.method,
-                params,
-                data ? JSON.parse(data) : {},
-              );
-            } catch (err) {
-              result = {
-                code: 500,
-                message:
-                  err instanceof Error
-                    ? err.message
-                    : err instanceof String
-                      ? err
-                      : (err as string),
-              } as ControllerResponse;
-            }
+            result = controller.proceed(
+              req.method,
+              params,
+              data ? JSON.parse(data) : {},
+            );
           }
         }
       }
 
       if (!result) {
         result = {
-          code: 500,
+          code: 404,
           message: 'Controller not found',
         } as ControllerResponse;
       }
 
-      res.setHeader('statusCode', result.code);
+      res.statusCode = result.code;
       res.write(
         JSON.stringify({
           result: result.result,

@@ -16,7 +16,7 @@ export default class Server {
       try {
         this.router.handle(req, res);
       } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.writeHead(500, { 'Content-Type': 'text/html' });
         res.end('Internal Server Error');
       }
     });

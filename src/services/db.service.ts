@@ -6,7 +6,11 @@ export const validateUUID = validate;
 export type UUID = ReturnType<typeof uuid>;
 
 export default class Database<T> {
-  protected data: { [key: UUID]: T } = {};
+  protected data: { [key: UUID]: T };
+
+  constructor(data?: { [key: UUID]: T }) {
+    this.data = data || {};
+  }
 
   public add(row: T): T {
     const id: UUID = uuid();
@@ -36,9 +40,15 @@ export default class Database<T> {
     return Object.values(this.data);
   }
 
+  public merge(database: Database<T>) {
+    this.data = database.data;
+  }
+
   private checkId(id: string) {
     if (!validateUUID(id)) {
       throw new DatabaseErrorID();
     }
   }
 }
+
+export const globalDatabase = new Database();

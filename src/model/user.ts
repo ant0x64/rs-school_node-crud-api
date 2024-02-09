@@ -21,7 +21,7 @@ const requiredFields: FieldsMap = {
     required: false,
     type: 'array',
     child: <FieldsMap>{
-      all: {
+      '*': {
         required: true,
         type: 'string',
       },

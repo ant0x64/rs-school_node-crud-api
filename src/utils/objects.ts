@@ -1,5 +1,5 @@
 export type FieldsMap = {
-  [key: string | 'all']: {
+  [key: string | '*']: {
     required: boolean;
     type: 'array' | 'number' | 'string';
     child?: FieldsMap;
@@ -12,31 +12,36 @@ export const hasRequiredFields = <T>(
 ): obj is T => {
   for (const key of Object.keys(requiredFields)) {
     const params = requiredFields[key];
+    const objectItem = obj[key];
     if (!params) {
       continue;
     }
-    if (obj.hasOwnProperty(key) && obj[key] !== undefined) {
+    if (obj.hasOwnProperty(key) && objectItem !== undefined) {
       switch (params.type) {
         case 'string':
-          if (!(typeof obj[key] === 'string')) {
+          if (!(typeof objectItem === 'string')) {
             return true;
           }
           break;
         case 'array':
-          if (!(obj[key] instanceof Array)) {
+          if (!(objectItem instanceof Array)) {
             return true;
-          } else if (params.required && !obj[key].length) {
+          } else if (params.required && !objectItem.length) {
             return true;
-          } else if (params.child && obj[key].length) {
-            const arrayObject: Array<any> = obj[key];
-            if (params.child.all) {
-              const map = {};
-              const object = Object.assign({}, ...arrayObject);
-              arrayObject.reduce((result, el, index) => {
-                result[index] = el;
-                return result;
-              }, map);
-              return hasRequiredFields(object, map);
+          } else if (params.child && objectItem.length) {
+            const arrayObject: { [key: number]: any } = {};
+            const childForAll = params.child['*'];
+
+            objectItem.map((el, key) => {
+              arrayObject[key] = el;
+            });
+
+            if (childForAll) {
+              const map: FieldsMap = {};
+              objectItem.map(({}, key) => {
+                map[key] = childForAll;
+              });
+              return hasRequiredFields(arrayObject, map);
             } else {
               return hasRequiredFields(arrayObject, params.child);
             }

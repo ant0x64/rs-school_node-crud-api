@@ -17,7 +17,6 @@ export default class Router {
   }
 
   handle(req: IncomingMessage, res: ServerResponse): void {
-    let result: ControllerResponse | null = null;
     let data: string = '';
 
     res.setHeader('Content-Type', 'application/json');
@@ -27,40 +26,50 @@ export default class Router {
     });
 
     req.on('end', () => {
-      if (req.method) {
-        for (const [root, controller] of Object.entries(this.controllers)) {
-          if (req.url && `${req.url}/`.startsWith(`${root}/`)) {
-            const regex = new RegExp(`^${root}(\/)?`);
-            const params = req.url
-              .replace(regex, '')
-              .split('/')
-              .filter((val) => val && val !== '');
+      try {
+        this.proceed(req, res, data);
+      } catch (err) {
+        req.emit('error', err);
+      }
+    });
+  }
 
-            result = controller.proceed(
-              req.method,
-              params,
-              data ? JSON.parse(data) : {},
-            );
-          }
+  protected proceed(req: IncomingMessage, res: ServerResponse, data: string) {
+    let result: ControllerResponse | null = null;
+
+    if (req.method) {
+      for (const [root, controller] of Object.entries(this.controllers)) {
+        if (req.url && `${req.url}/`.startsWith(`${root}/`)) {
+          const regex = new RegExp(`^${root}(\/)?`);
+          const params = req.url
+            .replace(regex, '')
+            .split('/')
+            .filter((val) => val && val !== '');
+
+          result = controller.proceed(
+            req.method,
+            params,
+            data ? JSON.parse(data) : {},
+          );
         }
       }
+    }
 
-      if (!result) {
-        result = {
-          code: 404,
-          message: 'Controller hanlder not found',
-        } as ControllerResponse;
-      }
+    if (!result) {
+      result = {
+        code: 404,
+        message: 'Controller hanlder not found',
+      } as ControllerResponse;
+    }
 
-      res.statusCode = result.code;
-      res.write(
-        JSON.stringify({
-          result: result.result,
-          message: result.message,
-        }),
-      );
+    res.statusCode = result.code;
+    res.write(
+      JSON.stringify({
+        result: result.result,
+        message: result.message,
+      }),
+    );
 
-      res.end();
-    });
+    res.end();
   }
 }

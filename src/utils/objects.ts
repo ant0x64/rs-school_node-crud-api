@@ -19,7 +19,10 @@ export const hasRequiredFields = <T>(
     if (obj.hasOwnProperty(key) && objectItem !== undefined) {
       switch (params.type) {
         case 'string':
-          if (!(typeof objectItem === 'string')) {
+          if (
+            !(typeof objectItem === 'string') ||
+            (params.required && !objectItem.length)
+          ) {
             return true;
           }
           break;

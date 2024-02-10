@@ -10,6 +10,7 @@
     "scripts": {
       "start:dev": "ts-node-dev src/app",
       "start:prod": "tsc && node dist/app",
+      "start:multi": "ts-node src/cluster",
       "format": "prettier --write \"src/**/*.ts\"",
       "lint": "eslint \"src/**/*.ts\" --fix",
       "test": "jest --silent",

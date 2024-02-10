@@ -32,19 +32,19 @@ if (cluster.isPrimary) {
     });
   }
 
-  cluster.on(
-    'message',
-    (messagedWorker: Worker, workerDatabase: Database<any>) => {
-      database.merge(workerDatabase);
-      for (const worker_id in cluster.workers) {
-        const worker = cluster.workers[worker_id];
-        if (worker && worker !== messagedWorker) {
-          worker.send(database);
-        }
+  cluster.on('message', (messagedWorker: Worker, workerDatabase: object) => {
+    if (!workerDatabase || !workerDatabase.hasOwnProperty('data')) {
+      return;
+    }
+    database.merge(workerDatabase as Database<any>);
+    for (const worker_id in cluster.workers) {
+      const worker = cluster.workers[worker_id];
+      if (worker && worker !== messagedWorker) {
+        worker.send(database);
       }
-      console.log(`Database updated from the worker`);
-    },
-  );
+    }
+    console.log(`Database updated from the worker`);
+  });
 
   let worker_index: number;
   const clusterServer = createServer((req, res) => {

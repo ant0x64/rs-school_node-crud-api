@@ -5,26 +5,43 @@ import ControllerInterface, {
 
 import Database from './../services/db.service';
 
-import { readdir } from 'node:fs/promises';
-import { parse } from 'node:path';
+// import { readdir } from 'node:fs/promises';
+// import { parse } from 'node:path';
+
+// class ControllersProvide {
+//   private controllers: {
+//     [key: ControllerRoot]: ControllerInterface<ControllerResponse>;
+//   } = {};
+
+//   async getControllers(database: Database<any>) {
+//     if (!Object.keys(this.controllers).length) {
+//       await readdir(__dirname).then(async (modules) => {
+//         for (const file of modules) {
+//           const name = parse(file).name;
+//           if (name.endsWith('.controller')) {
+//             const { default: Controller } = await import('./' + name);
+//             const controllerModel = new Controller(database);
+//             this.controllers[controllerModel.root] = controllerModel;
+//           }
+//         }
+//       });
+//     }
+//     return this.controllers;
+//   }
+// }
+
+// crutch for webpack :c
+import UserController from './user.controller';
+const controllers = [UserController];
 
 class ControllersProvide {
   private controllers: {
     [key: ControllerRoot]: ControllerInterface<ControllerResponse>;
   } = {};
-
   async getControllers(database: Database<any>) {
-    if (!Object.keys(this.controllers).length) {
-      await readdir(__dirname).then(async (modules) => {
-        for (const file of modules) {
-          const name = parse(file).name;
-          if (name.endsWith('.controller')) {
-            const { default: Controller } = await import('./' + name);
-            const controllerModel = new Controller(database);
-            this.controllers[controllerModel.root] = controllerModel;
-          }
-        }
-      });
+    for (const Controller of controllers) {
+      const controllerModel = new Controller(database);
+      this.controllers[controllerModel.root] = controllerModel;
     }
     return this.controllers;
   }

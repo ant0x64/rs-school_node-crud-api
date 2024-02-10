@@ -11,8 +11,3 @@ export class ModelErrorFields extends ModelError {
     super(message);
   }
 }
-export class ModelErrorID extends ModelError {
-  constructor(message: string = 'ID has incorrect format') {
-    super(message);
-  }
-}

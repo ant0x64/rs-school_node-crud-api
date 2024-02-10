@@ -1,4 +1,4 @@
-import { createServer } from 'http';
+import { createServer } from 'node:http';
 
 import Router from './../routers/main.router';
 import Database from './../services/db.service';
@@ -16,7 +16,7 @@ export default class Server {
       try {
         this.router.handle(req, res);
       } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Internal Server Error');
       }
     });

@@ -1,8 +1,6 @@
 import { v4 as uuid, validate } from 'uuid';
 import { DatabaseErrorID } from './../exceptions/database.exception';
 
-export const validateUUID = validate;
-
 export type UUID = ReturnType<typeof uuid>;
 
 export default class Database<T> {
@@ -21,7 +19,7 @@ export default class Database<T> {
 
   public delete(id: UUID): boolean {
     this.checkId(id);
-    return this.data[id] ? delete this.data[id] || true : false;
+    return this.data[id] ? delete this.data[id] : false;
   }
 
   public update(id: UUID, row: T): boolean {
@@ -45,10 +43,8 @@ export default class Database<T> {
   }
 
   private checkId(id: string) {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new DatabaseErrorID();
     }
   }
 }
-
-export const globalDatabase = new Database();

@@ -10,4 +10,4 @@ const database = new Database<ModelInterface>();
 const server = new Server(database);
 const listener = server.run();
 
-listener.listen(process.env.HOST_PORT ?? 3500);
+listener.listen(process.env.HOST_PORT ?? 3000);

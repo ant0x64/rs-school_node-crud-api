@@ -43,7 +43,7 @@ export default class UserController
 
     return {
       code: 500,
-      message: "Can't resolve the request",
+      message: "Controller handler can't resolve the request",
     } as ControllerResponse;
   }
 

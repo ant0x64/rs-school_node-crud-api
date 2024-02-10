@@ -9,7 +9,7 @@ import Database from './../services/db.service';
 
 export default class Router {
   protected controllers: {
-    [key: ControllerRoot]: ControllerInterface<ControllerResponse>;
+    [key: ControllerRoot]: ControllerInterface<any>;
   } = {};
 
   async build(database: Database<any>) {
@@ -28,9 +28,9 @@ export default class Router {
 
     req.on('end', () => {
       if (req.method) {
-        for (const [key, controller] of Object.entries(this.controllers)) {
-          if (req.url && `${req.url}/`.startsWith(`${key}/`)) {
-            const regex = new RegExp(`^${key}(\/)?`);
+        for (const [root, controller] of Object.entries(this.controllers)) {
+          if (req.url && `${req.url}/`.startsWith(`${root}/`)) {
+            const regex = new RegExp(`^${root}(\/)?`);
             const params = req.url
               .replace(regex, '')
               .split('/')
@@ -48,7 +48,7 @@ export default class Router {
       if (!result) {
         result = {
           code: 404,
-          message: 'Controller not found',
+          message: 'Controller hanlder not found',
         } as ControllerResponse;
       }
 

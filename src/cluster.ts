@@ -26,6 +26,8 @@ if (cluster.isPrimary) {
         `Worker on the port ${port} existed with the code: ${code}`,
       );
       cluster.fork({ HOST_PORT: port });
+      worker.send(database);
+
       console.log(`Worker run on the port: ${port}`);
     });
   }
@@ -48,12 +50,12 @@ if (cluster.isPrimary) {
   const clusterServer = createServer((req, res) => {
     worker_index = ((worker_index || 0) % AVAILABLE_WORKERS) + 1;
 
-    console.log(`Cluster get request`);
+    console.log(`Cluster get a request`);
 
     new Promise(() => {
       const WORKER_PORT = CLUSTER_PORT + worker_index;
 
-      console.log(`Cluster creates request to the port: ${WORKER_PORT}`);
+      console.log(`Cluster creates a request to the port: ${WORKER_PORT}`);
       const requestToWorker = request(
         {
           port: WORKER_PORT,
@@ -63,7 +65,7 @@ if (cluster.isPrimary) {
           headers: req.headers,
         } as RequestOptions,
         (workerResponce) => {
-          console.log(`Cluster proxied request to the port: ${WORKER_PORT}`);
+          console.log(`Cluster proxied a request to the port: ${WORKER_PORT}`);
           res.writeHead(
             workerResponce.statusCode ?? 500,
             workerResponce.headers,
@@ -73,11 +75,11 @@ if (cluster.isPrimary) {
       );
       req.pipe(requestToWorker);
       res.on('finish', () => {
-        console.log(`Cluster finished request on the port: ${WORKER_PORT}`);
+        console.log(`Cluster finished a request on the port: ${WORKER_PORT}`);
       });
 
       requestToWorker.on('error', () => {
-        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Internal Server Error');
       });
     });
@@ -98,15 +100,14 @@ if (cluster.isPrimary) {
   // });
   // hostServer.listen(HOST_PORT);
 
-  const listener = server.run().on('', () => {
-    process.send ? process.send(database) : null;
-  });
-  console.log(`Worker listening on the port: ${HOST_PORT}`);
-  listener.listen(HOST_PORT ?? 3500).on('request', ({}, res) => {
+  const listener = server.run().on('request', ({}, res) => {
     res.on('finish', () => {
       process.send ? process.send(database) : null;
     });
   });
+
+  console.log(`Worker listening on the port: ${HOST_PORT}`);
+  listener.listen(HOST_PORT ?? 3500);
 
   process.on('message', (parentDatabase: Database<any>) => {
     database.merge(parentDatabase);

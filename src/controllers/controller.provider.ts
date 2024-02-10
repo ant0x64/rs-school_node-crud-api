@@ -5,8 +5,8 @@ import ControllerInterface, {
 
 import Database from './../services/db.service';
 
-import { readdir } from 'fs/promises';
-import { parse } from 'path';
+import { readdir } from 'node:fs/promises';
+import { parse } from 'node:path';
 
 class ControllersProvide {
   private controllers: {

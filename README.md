@@ -1,4 +1,4 @@
-# Node GRUD API with clustering
+# Node CRUD API with clustering
 
 Simple CRUD API using in-memory database underneath.
 

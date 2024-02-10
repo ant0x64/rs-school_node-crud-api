@@ -20,7 +20,7 @@ Make sure you have the following installed on your machine:
 
 1. Clone the respository
    ```bash
-   git clone https://github.com/ant0x64/rs-school_node-grud-api.git
+   git clone https://github.com/ant0x64/rs-school_node-crud-api.git
 2. Change the branch
     ```bash
     git pull origin dev && git checkout dev

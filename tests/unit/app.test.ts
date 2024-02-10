@@ -14,37 +14,37 @@ const validBody = {
   hobbies: ['hobbie'],
 };
 
-// const invalidBodies = [
-//   {
-//     username: '',
-//     age: 20,
-//     hobbies: ['hobbie'],
-//   },
-//   {
-//     username: 'User Name',
-//     age: '20',
-//     hobbies: ['hobbie'],
-//   },
-//   {
-//     username: 'User Name',
-//     age: 20,
-//     hobbies: [100],
-//   },
-// ];
+const invalidBodies = [
+  {
+    username: '',
+    age: 20,
+    hobbies: ['hobbie'],
+  },
+  {
+    username: 'User Name',
+    age: 'string',
+    hobbies: ['hobbie'],
+  },
+  {
+    username: 'User Name',
+    age: 20,
+    hobbies: [100],
+  },
+];
+
+jest.mock('services/db.service');
+
+const userController = new UserController(new Database());
+const controller_root = userController.root;
+
+jest.unmock('services/db.service');
 
 const database = new Database();
 const server = new Server(database);
 const listener = server.run();
+listener.listen(process.env.HOST_PORT ?? 3000);
 
-describe('Server Requests Testing', () => {
-  listener.listen(process.env.HOST_PORT ?? 3500);
-  jest.mock('services/db.service');
-
-  const userController = new UserController(new Database());
-  const controller_root = userController.root;
-
-  jest.unmock('services/db.service');
-
+describe('Valid Requests', () => {
   test('Get all records with a GET api/users request (an empty array is expected)', async () => {
     const response = await request(listener).get(controller_root);
     expect(response.status).toEqual(200);
@@ -57,15 +57,6 @@ describe('Server Requests Testing', () => {
       controller_root + '/' + valid_id,
     );
     expect(response.status).toEqual(404);
-    expect(response.body).toHaveProperty('message');
-  });
-
-  test('Get invalid user ID (400 status and the message expected)', async () => {
-    const invalid_id = uuid() + '__';
-    const response = await request(listener).get(
-      controller_root + '/' + invalid_id,
-    );
-    expect(response.status).toEqual(400);
     expect(response.body).toHaveProperty('message');
   });
 
@@ -130,6 +121,17 @@ describe('Server Requests Testing', () => {
       id: user_id,
     });
   });
+});
+
+describe('Invalid Requests', () => {
+  test('Get invalid user ID (400 status and the message expected)', async () => {
+    const invalid_id = uuid() + '__';
+    const response = await request(listener).get(
+      controller_root + '/' + invalid_id,
+    );
+    expect(response.status).toEqual(400);
+    expect(response.body).toHaveProperty('message');
+  });
 
   test('Requests to non-existing endpoints', async () => {
     const createUserResponce = await request(listener).get(
@@ -140,5 +142,45 @@ describe('Server Requests Testing', () => {
     expect(createUserResponce.body).toHaveProperty('message');
   });
 
-  listener.close();
+  test('Add new user with invalid JSON (500 status expected)', async () => {
+    const response = await request(listener)
+      .post(controller_root)
+      .send('{someBrokenJson"');
+
+    expect(response.status).toEqual(500);
+  });
 });
+
+describe('Required fields', () => {
+  test.each(invalidBodies)(
+    'Add user with incorect fields - {username: "$username", age: "$age", hobbies: "$hobbies",  (400 status expected)',
+    async (body) => {
+      const response = await request(listener).post(controller_root).send(body);
+
+      expect(response.status).toEqual(400);
+    },
+  );
+
+  test.each(invalidBodies)(
+    'Update user with incorect fields - {username: "$username", age: "$age", hobbies: "$hobbies",  (400 status and message expected)',
+    async (body) => {
+      const createUserResponce = await request(listener)
+        .post(controller_root)
+        .send(validBody);
+
+      expect(createUserResponce.body).toHaveProperty('result.id');
+      const user_id = createUserResponce.body.result.id;
+
+      const updateBody = { ...body, user_id };
+
+      const putUserResponce = await request(listener)
+        .put(controller_root + '/' + user_id)
+        .send(updateBody);
+
+      expect(putUserResponce.status).toEqual(400);
+      expect(putUserResponce.body).toHaveProperty('message');
+    },
+  );
+});
+
+listener.close();

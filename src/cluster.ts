@@ -1,8 +1,10 @@
 import cluster, { Worker } from 'node:cluster';
 
 import dotenv from 'dotenv';
+
+import App from './app';
+
 import { createServer, request, RequestOptions } from 'node:http';
-import Server from './services/server';
 import { availableParallelism } from 'node:os';
 
 import Database from './services/db.service';
@@ -10,12 +12,16 @@ import Database from './services/db.service';
 dotenv.config();
 
 if (cluster.isPrimary) {
-  const CLUSTER_PORT: number = parseInt(process.env.CLUSTER_PORT ?? '') ?? 4000;
-  const AVAILABLE_WORKERS = availableParallelism() - 1;
+  const CLUSTER_PORT =
+    process.env.CLUSTER_PORT && isNaN(parseInt(process.env.CLUSTER_PORT))
+      ? parseInt(process.env.CLUSTER_PORT)
+      : 4000;
+
+  const available_workers = availableParallelism() - 1;
   const database = new Database();
 
   console.log(`Cluster created`);
-  for (let i = 0; i <= AVAILABLE_WORKERS; i++) {
+  for (let i = 0; i <= available_workers; i++) {
     const port = CLUSTER_PORT + 1 + i;
     const worker = cluster.fork({ HOST_PORT: port });
     console.log(`Worker run on the port: ${port}`);
@@ -48,7 +54,7 @@ if (cluster.isPrimary) {
 
   let worker_index: number;
   const clusterServer = createServer((req, res) => {
-    worker_index = ((worker_index || 0) % AVAILABLE_WORKERS) + 1;
+    worker_index = ((worker_index || 0) % available_workers) + 1;
 
     console.log(`Cluster get a request`);
 
@@ -89,25 +95,29 @@ if (cluster.isPrimary) {
     console.log(`Cluster listening on the port: ${CLUSTER_PORT}`);
   });
 } else {
-  const HOST_PORT: number = parseInt(process.env.HOST_PORT ?? '') ?? 4000;
+  const HOST_PORT =
+    process.env.HOST_PORT && isNaN(parseInt(process.env.HOST_PORT))
+      ? parseInt(process.env.HOST_PORT)
+      : 4000;
+
   const database = new Database();
-  const server = new Server(database);
+  const app = new App(database);
 
-  // const hostServer = createServer(({}, res) => {
-  //   setTimeout(() => {
-  //     res.end('end ' + HOST_PORT);
-  //   }, 5000);
-  // });
-  // hostServer.listen(HOST_PORT);
+  const server = createServer((req, res) => {
+    req.on('error', () => {
+      res.writeHead(500);
+    });
+    app.handleHttp(req, res);
+  });
 
-  const listener = server.run().on('request', ({}, res) => {
+  server.on('request', ({}, res) => {
     res.on('finish', () => {
       process.send ? process.send(database) : null;
     });
   });
 
+  server.listen(process.env.HOST_PORT ?? 4000);
   console.log(`Worker listening on the port: ${HOST_PORT}`);
-  listener.listen(HOST_PORT ?? 3500);
 
   process.on('message', (parentDatabase: Database<any>) => {
     database.merge(parentDatabase);

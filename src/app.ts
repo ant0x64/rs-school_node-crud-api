@@ -1,13 +1,26 @@
-import dotenv from 'dotenv';
-import Server from './services/server';
+import { ServerResponse, IncomingMessage } from 'node:http';
 
-import ModelInterface from './models/model.interface';
+import Router from './routers/main.router';
 import Database from './services/db.service';
 
-dotenv.config();
+export default class App {
+  private router: Router;
 
-const database = new Database<ModelInterface>();
-const server = new Server(database);
-const listener = server.run();
+  constructor(database: Database<any>) {
+    this.router = new Router();
+    this.router.build(database);
+  }
 
-listener.listen(process.env.HOST_PORT ?? 3000);
+  handleHttp(req: IncomingMessage, res: ServerResponse) {
+    try {
+      this.router.handle(req, res);
+    } catch (err) {
+      req.emit('error', err);
+    }
+  }
+
+  protected handleAsError(res: ServerResponse, message?: string) {
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end(message);
+  }
+}

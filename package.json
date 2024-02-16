@@ -8,8 +8,8 @@
       "node": ">=20.11.0"
     },
     "scripts": {
-      "start:dev": "ts-node-dev src/app",
-      "start:prod": "tsc && webpack --mode=production && node dist/app.min",
+      "start:dev": "ts-node-dev src/server",
+      "start:prod": "tsc && webpack --mode=production && node dist/server.min",
       "start:multi": "ts-node-dev src/cluster",
       "format": "prettier --write \"src/**/*.ts\"",
       "lint": "eslint \"src/**/*.ts\" --fix",

@@ -12,10 +12,12 @@ const app = new App(database);
 
 const server = createServer((req, res) => {
   req.on('error', (err) => {
-    res.writeHead(500);
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
     res.end(err.message);
   });
   app.handleHttp(req, res);
 });
 
 server.listen(process.env.HOST_PORT ?? 3000);
+
+export default server;

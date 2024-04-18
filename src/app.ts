@@ -18,9 +18,4 @@ export default class App {
       req.emit('error', err);
     }
   }
-
-  protected handleAsError(res: ServerResponse, message?: string) {
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end(message);
-  }
 }

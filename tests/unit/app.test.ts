@@ -2,7 +2,7 @@ import request from 'supertest';
 import dotenv from 'dotenv';
 import { v4 as uuid } from 'uuid';
 
-import Server from 'services/server';
+import listener from 'server';
 import Database from 'services/db.service';
 import UserController from 'controllers/user.controller';
 
@@ -39,10 +39,6 @@ const controller_root = userController.root;
 
 jest.unmock('services/db.service');
 
-const database = new Database();
-const server = new Server(database);
-const listener = server.run();
-listener.listen(process.env.HOST_PORT ?? 3000);
 
 describe('Valid Requests', () => {
   test('Get all records with a GET api/users request (an empty array is expected)', async () => {
